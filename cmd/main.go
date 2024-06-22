@@ -1,11 +1,16 @@
 package main
 
 import (
+	"reliproxy/pkg/db"
 	"reliproxy/pkg/handlers"
 	"reliproxy/pkg/httpclient"
+	"reliproxy/pkg/models"
+	"reliproxy/pkg/queue"
+	"reliproxy/pkg/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
 )
@@ -28,9 +33,27 @@ func main() {
 
 	handler := handlers.NewHandler(httpClient, circuitBreaker, rateLimiter, 3)
 
+	connectionEnv := db.NewMySQLConnectionEnv()
+	dbn, err := connectionEnv.ConnectDBWithRetry()
+	if err != nil {
+		panic(err)
+	}
+	db.Migrate(dbn)
+	statusRepository := models.NewGormRequestStatusRepository(dbn)
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     utils.GetEnv("REDIS_ADDR", "localhost:6379"),
+		Password: utils.GetEnv("REDIS_PASSWORD", ""),
+		DB:       0,
+	})
+	queue := queue.NewRedisQueue(rdb, utils.GetEnv("REDIS_QUEUE_NAME", "queue"))
+
+	asyncWriteHandler := handlers.NewAsyncWriteHandler(queue, statusRepository)
+
 	// Ginルーターの設定
 	r := gin.Default()
 	r.GET("/proxy", handler.HandleRequest)
+	r.GET("/async-proxy", asyncWriteHandler.HandleRequest)
 
 	// サーバーの起動
 	r.Run(":8080")
