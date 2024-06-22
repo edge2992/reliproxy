@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
 
@@ -59,10 +60,19 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, utils.ErrRateLimitExceeded):
+			utils.Logger.WithFields(logrus.Fields{
+				"error": err,
+			}).Warn("Rate limit exceeded")
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
 		case errors.Is(err, utils.ErrUnexpectedStatusCode):
+			utils.Logger.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Unexpected status code")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected status code"})
 		default:
+			utils.Logger.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Internal server error")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		}
 
@@ -70,5 +80,8 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 		return
 	}
 
+	utils.Logger.WithFields(logrus.Fields{
+		"result": result,
+	}).Info("Request handled successfully")
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
