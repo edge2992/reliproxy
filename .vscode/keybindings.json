@@ -1,0 +1,7 @@
+[
+    {
+        "key": "ctrl+t",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Run Go Tests"
+    }
+]
