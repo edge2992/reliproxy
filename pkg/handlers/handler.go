@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"io"
 	"net/http"
 
@@ -26,25 +25,7 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 	resp, err := h.client.Get("https://api.thirdparty.com/data")
 
 	if err != nil {
-		switch {
-		case errors.Is(err, utils.ErrRateLimitExceeded):
-			utils.Logger.WithFields(logrus.Fields{
-				"error": err,
-			}).Warn("Rate limit exceeded")
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
-		case errors.Is(err, utils.ErrUnexpectedStatusCode):
-			utils.Logger.WithFields(logrus.Fields{
-				"error": err,
-			}).Error("Unexpected status code")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected status code"})
-		default:
-			utils.Logger.WithFields(logrus.Fields{
-				"error": err,
-			}).Error("Internal server error")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		}
-
-		c.Error(err)
+		HandleError(c, err)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reliproxy/pkg/consumer"
 	"reliproxy/pkg/db"
 	"reliproxy/pkg/handlers"
 	"reliproxy/pkg/httpclient"
@@ -36,6 +37,9 @@ func main() {
 	queue := queue.NewRedisQueue(rdb, utils.GetEnv("REDIS_QUEUE_NAME", "queue"))
 
 	asyncWriteHandler := handlers.NewAsyncWriteHandler(queue, statusRepository)
+
+	consumer := consumer.NewConsumer(queue, statusRepository, reliClient)
+	go consumer.Start()
 
 	// Ginルーターの設定
 	r := gin.Default()
