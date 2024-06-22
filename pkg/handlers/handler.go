@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +34,7 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 	result, err := h.circuitBreaker.Execute(func() (interface{}, error) {
 		return utils.RetryWithExponentialBackoff(func() (interface{}, error) {
 			if !h.rateLimiter.Allow() {
-				return nil, fmt.Errorf("rate limit exceeded")
+				return nil, utils.ErrRateLimitExceeded
 			}
 
 			resp, err := h.client.Get("https://api.thirdparty.com/data")
@@ -42,15 +44,31 @@ func (h *Handler) HandleRequest(c *gin.Context) {
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
-				return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+				return nil, fmt.Errorf("%w: %d", utils.ErrUnexpectedStatusCode, resp.StatusCode)
 			}
-			return "Success", nil
+
+			bodyBytes, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err
+			}
+
+			return string(bodyBytes), nil
 		}, h.maxRetries)
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"data": result})
+		switch {
+		case errors.Is(err, utils.ErrRateLimitExceeded):
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+		case errors.Is(err, utils.ErrUnexpectedStatusCode):
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected status code"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		}
+
+		c.Error(err)
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
 }

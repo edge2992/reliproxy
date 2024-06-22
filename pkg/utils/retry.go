@@ -18,5 +18,8 @@ func RetryWithExponentialBackoff(operation func() (interface{}, error), maxRetri
 		backoffDuration := time.Duration((1 << i)) * time.Second
 		time.Sleep(backoffDuration)
 	}
-	return nil, fmt.Errorf("operation failed after %d retries: %v", maxRetries, err)
+
+	fmt.Printf("operation failed after %d retries: %v", maxRetries, err)
+
+	return nil, err
 }
