@@ -1,6 +1,7 @@
-package main
+package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -9,10 +10,13 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
+
+	"third-party-proxy/pkg/utils"
 )
 
 var (
 	rdb            *redis.Client
+	ctx            = context.Background()
 	cb             *gobreaker.CircuitBreaker
 	rateLimiter    *rate.Limiter
 	requestPerSec  = 5
@@ -20,12 +24,15 @@ var (
 	maxRetries     = 3
 )
 
-func main() {
+func init() {
+	// Redisクライアントの初期化
 	rdb = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379"})
+		Addr: "localhost:6379",
+	})
 
+	// サーキットブレーカーの設定
 	settings := gobreaker.Settings{
-		Name:        "sample circuit breaker",
+		Name:        "HTTP GET",
 		MaxRequests: 5,
 		Interval:    2 * time.Second,
 		Timeout:     10 * time.Second,
@@ -33,26 +40,17 @@ func main() {
 			return counts.TotalFailures > 3
 		},
 	}
-
 	cb = gobreaker.NewCircuitBreaker(settings)
+
+	// レートリミッターの設定
 	rateLimiter = rate.NewLimiter(rate.Limit(requestPerSec), burstAllowance)
-
-	r := gin.Default()
-
-	r.GET("/proxy", handleRequest)
-	r.Run(":8080")
 }
 
-func handleRequest(c *gin.Context) {
-	if !rateLimiter.Allow() {
-		c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
-		return
-	}
-
+func HandleRequest(c *gin.Context) {
 	result, err := cb.Execute(func() (interface{}, error) {
-		return retryWithExponentialBackoff(func() (interface{}, error) {
+		return utils.RetryWithExponentialBackoff(func() (interface{}, error) {
 			if !rateLimiter.Allow() {
-				return nil, fmt.Errorf("Rate limit exceeded")
+				return nil, fmt.Errorf("rate limit exceeded")
 			}
 
 			resp, err := http.Get("https://api.thirdparty.com/data")
@@ -70,24 +68,7 @@ func handleRequest(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{"data": result})
 	}
-}
-
-// retryWithExponentialBackoff retries the operation with exponential backoff
-func retryWithExponentialBackoff(operation func() (interface{}, error), maxRetries int) (interface{}, error) {
-	var result interface{}
-	var err error
-
-	for i := 0; i < maxRetries; i++ {
-		result, err = operation()
-		if err == nil {
-			return result, nil
-		}
-		backoffDuration := time.Duration((1 << i)) * time.Second
-		time.Sleep(backoffDuration)
-	}
-	return nil, fmt.Errorf("operation failed after %d retries retries: %v", maxRetries, err)
 }

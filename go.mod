@@ -1,4 +1,4 @@
-module go-redis-proxy
+module third-party-proxy
 
 go 1.22.3
 
