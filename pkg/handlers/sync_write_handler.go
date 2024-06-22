@@ -11,17 +11,17 @@ import (
 	"reliproxy/pkg/utils"
 )
 
-type Handler struct {
+type SyncWriteHandler struct {
 	client httpclient.HttpClient
 }
 
-func NewHandler(client httpclient.HttpClient) *Handler {
-	return &Handler{
+func NewSyncWriteHandler(client httpclient.HttpClient) *SyncWriteHandler {
+	return &SyncWriteHandler{
 		client: client,
 	}
 }
 
-func (h *Handler) HandleRequest(c *gin.Context) {
+func (h *SyncWriteHandler) HandleRequest(c *gin.Context) {
 	resp, err := h.client.Get("https://api.thirdparty.com/data")
 
 	if err != nil {

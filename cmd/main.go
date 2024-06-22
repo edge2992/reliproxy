@@ -25,7 +25,7 @@ func main() {
 
 	reliClient := httpclient.NewReliClient(httpClient, circuitBreaker, rateLimiter, 3)
 
-	handler := handlers.NewHandler(reliClient)
+	handler := handlers.NewSyncWriteHandler(reliClient)
 
 	dbn, err := initDatabase()
 	if err != nil {

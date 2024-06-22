@@ -35,7 +35,7 @@ func TestHandleRequest(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1, 1)
 		mockClient := new(httpclient.MockClient)
 		reliClient := httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1)
-		handler := handlers.NewHandler(reliClient)
+		handler := handlers.NewSyncWriteHandler(reliClient)
 
 		router := gin.Default()
 		router.GET("/proxy", handler.HandleRequest)
@@ -54,7 +54,7 @@ func TestHandleRequest(t *testing.T) {
 	t.Run("successful request", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
 		mockClient := new(httpclient.MockClient)
-		handler := handlers.NewHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
+		handler := handlers.NewSyncWriteHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
 
 		router := gin.Default()
 		router.GET("/proxy", handler.HandleRequest)
@@ -78,7 +78,7 @@ func TestHandleRequest(t *testing.T) {
 	t.Run("unexpected status code", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
 		mockClient := new(httpclient.MockClient)
-		handler := handlers.NewHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
+		handler := handlers.NewSyncWriteHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
 
 		router := gin.Default()
 		router.GET("/proxy", handler.HandleRequest)
@@ -101,7 +101,7 @@ func TestHandleRequest(t *testing.T) {
 	t.Run("client error", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
 		mockClient := new(httpclient.MockClient)
-		handler := handlers.NewHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
+		handler := handlers.NewSyncWriteHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
 
 		router := gin.Default()
 		router.GET("/proxy", handler.HandleRequest)
@@ -132,7 +132,7 @@ func TestHandleRequest(t *testing.T) {
 		circuitBreaker := gobreaker.NewCircuitBreaker(cbSettings)
 		rateLimiter := rate.NewLimiter(1000, 1000)
 		mockClient := new(httpclient.MockClient)
-		handler := handlers.NewHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
+		handler := handlers.NewSyncWriteHandler(httpclient.NewReliClient(mockClient, circuitBreaker, rateLimiter, 1))
 
 		router := gin.Default()
 		router.GET("/proxy", handler.HandleRequest)
