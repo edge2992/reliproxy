@@ -1,4 +1,4 @@
-package mocks
+package httpclient
 
 import (
 	"net/http"

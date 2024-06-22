@@ -1,4 +1,4 @@
-package tests
+package handlers_test
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"reliproxy/internal/mocks"
 	"reliproxy/pkg/handlers"
+	"reliproxy/pkg/httpclient"
 	"testing"
 	"time"
 
@@ -33,7 +33,7 @@ func TestHandleRequest(t *testing.T) {
 
 	t.Run("rate limit exceeded", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1, 1)
-		mockClient := new(mocks.MockClient)
+		mockClient := new(httpclient.MockClient)
 		handler := handlers.NewHandler(mockClient, circuitBreaker, rateLimiter, 1)
 
 		router := gin.Default()
@@ -52,7 +52,7 @@ func TestHandleRequest(t *testing.T) {
 
 	t.Run("successful request", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
-		mockClient := new(mocks.MockClient)
+		mockClient := new(httpclient.MockClient)
 		handler := handlers.NewHandler(mockClient, circuitBreaker, rateLimiter, 1)
 
 		router := gin.Default()
@@ -76,7 +76,7 @@ func TestHandleRequest(t *testing.T) {
 
 	t.Run("unexpected status code", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
-		mockClient := new(mocks.MockClient)
+		mockClient := new(httpclient.MockClient)
 		handler := handlers.NewHandler(mockClient, circuitBreaker, rateLimiter, 1)
 
 		router := gin.Default()
@@ -99,7 +99,7 @@ func TestHandleRequest(t *testing.T) {
 
 	t.Run("client error", func(t *testing.T) {
 		rateLimiter := rate.NewLimiter(1000, 1)
-		mockClient := new(mocks.MockClient)
+		mockClient := new(httpclient.MockClient)
 		handler := handlers.NewHandler(mockClient, circuitBreaker, rateLimiter, 1)
 
 		router := gin.Default()
@@ -130,7 +130,7 @@ func TestHandleRequest(t *testing.T) {
 		}
 		circuitBreaker := gobreaker.NewCircuitBreaker(cbSettings)
 		rateLimiter := rate.NewLimiter(1000, 1000)
-		mockClient := new(mocks.MockClient)
+		mockClient := new(httpclient.MockClient)
 		handler := handlers.NewHandler(mockClient, circuitBreaker, rateLimiter, 1)
 
 		router := gin.Default()
