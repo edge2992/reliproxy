@@ -1,14 +1,15 @@
 package utils
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
 // RetryWithExponentialBackoff retries the operation with exponential backoff
-func RetryWithExponentialBackoff(operation func() (interface{}, error), maxRetries int) (interface{}, error) {
-	var result interface{}
+func RetryWithExponentialBackoff(operation func() (*http.Response, error), maxRetries int) (*http.Response, error) {
+	var result *http.Response
 	var err error
 
 	for i := 0; i < maxRetries; i++ {

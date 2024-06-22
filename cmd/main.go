@@ -22,7 +22,9 @@ func main() {
 	rateLimiter := rate.NewLimiter(rate.Limit(5), 10)
 	httpClient := &httpclient.DefaultHttpClient{}
 
-	handler := handlers.NewHandler(httpClient, circuitBreaker, rateLimiter, 3)
+	reliClient := httpclient.NewReliClient(httpClient, circuitBreaker, rateLimiter, 3)
+
+	handler := handlers.NewHandler(reliClient)
 
 	dbn, err := initDatabase()
 	if err != nil {
