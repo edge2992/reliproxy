@@ -17,13 +17,15 @@ func RetryWithExponentialBackoff(operation func() (interface{}, error), maxRetri
 			return result, nil
 		}
 
-		backoffDuration := time.Duration((1 << i)) * time.Second
-		Logger.WithFields(logrus.Fields{
-			"retry":      i + 1,
-			"maxRetries": maxRetries,
-			"error":      err,
-		}).Warningf("Retry %d/%d failed. Retrying in %v", i+1, maxRetries, backoffDuration)
-		time.Sleep(backoffDuration)
+		if i < maxRetries-1 {
+			backoffDuration := time.Duration((1 << i)) * time.Second
+			Logger.WithFields(logrus.Fields{
+				"retry":      i + 1,
+				"maxRetries": maxRetries,
+				"error":      err,
+			}).Warningf("Retry %d/%d failed. Retrying in %v", i+1, maxRetries, backoffDuration)
+			time.Sleep(backoffDuration)
+		}
 	}
 
 	Logger.WithFields(logrus.Fields{
