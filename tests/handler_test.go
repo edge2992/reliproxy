@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reliproxy/internal/mocks"
+	"reliproxy/pkg/handlers"
 	"testing"
-	"third-party-proxy/internal/mocks"
-	"third-party-proxy/pkg/handlers"
 	"time"
 
 	"github.com/gin-gonic/gin"

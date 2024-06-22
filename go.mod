@@ -1,4 +1,4 @@
-module third-party-proxy
+module reliproxy
 
 go 1.22.3
 

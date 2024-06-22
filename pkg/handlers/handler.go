@@ -11,8 +11,8 @@ import (
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
 
-	"third-party-proxy/pkg/httpclient"
-	"third-party-proxy/pkg/utils"
+	"reliproxy/pkg/httpclient"
+	"reliproxy/pkg/utils"
 )
 
 type Handler struct {

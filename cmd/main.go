@@ -1,8 +1,8 @@
 package main
 
 import (
-	"third-party-proxy/pkg/handlers"
-	"third-party-proxy/pkg/httpclient"
+	"reliproxy/pkg/handlers"
+	"reliproxy/pkg/httpclient"
 	"time"
 
 	"github.com/gin-gonic/gin"
