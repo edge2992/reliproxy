@@ -8,18 +8,18 @@ import (
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
 
-	"third-party-proxy/pkg/services"
+	"third-party-proxy/pkg/httpclient"
 	"third-party-proxy/pkg/utils"
 )
 
 type Handler struct {
-	client         services.IHTTPClient
+	client         httpclient.HttpClient
 	circuitBreaker *gobreaker.CircuitBreaker
 	rateLimiter    *rate.Limiter
 	maxRetries     int
 }
 
-func NewHandler(client services.IHTTPClient, cb *gobreaker.CircuitBreaker, rl *rate.Limiter, maxRetries int) *Handler {
+func NewHandler(client httpclient.HttpClient, cb *gobreaker.CircuitBreaker, rl *rate.Limiter, maxRetries int) *Handler {
 	return &Handler{
 		client:         client,
 		circuitBreaker: cb,

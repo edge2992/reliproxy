@@ -2,7 +2,7 @@ package main
 
 import (
 	"third-party-proxy/pkg/handlers"
-	"third-party-proxy/pkg/services"
+	"third-party-proxy/pkg/httpclient"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +24,7 @@ func main() {
 	circuitBreaker := gobreaker.NewCircuitBreaker(cbSettings)
 
 	rateLimiter := rate.NewLimiter(rate.Limit(5), 10)
-	httpClient := &services.HTTPClient{}
+	httpClient := &httpclient.DefaultHttpClient{}
 
 	handler := handlers.NewHandler(httpClient, circuitBreaker, rateLimiter, 3)
 
