@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"reliproxy/pkg/models"
+	"reliproxy/pkg/repository"
 	"reliproxy/pkg/utils"
 
 	"gorm.io/driver/mysql"
@@ -55,7 +55,7 @@ func (mc *MySQLConnectionEnv) ConnectDBWithRetry() (*gorm.DB, error) {
 }
 
 func Migrate(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.RequestStatus{})
+	err := db.AutoMigrate(&repository.RequestStatus{})
 	if err != nil {
 		return fmt.Errorf("failed to migrate RequestStatus model: %v", err)
 	}

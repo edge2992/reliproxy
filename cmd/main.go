@@ -4,8 +4,8 @@ import (
 	"reliproxy/pkg/db"
 	"reliproxy/pkg/handlers"
 	"reliproxy/pkg/httpclient"
-	"reliproxy/pkg/models"
 	"reliproxy/pkg/queue"
+	"reliproxy/pkg/repository"
 	"reliproxy/pkg/utils"
 	"time"
 
@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	statusRepository := models.NewGormRequestStatusRepository(dbn)
+	statusRepository := repository.NewGormRequestStatusRepository(dbn)
 
 	rdb := initRedisClient()
 	queue := queue.NewRedisQueue(rdb, utils.GetEnv("REDIS_QUEUE_NAME", "queue"))

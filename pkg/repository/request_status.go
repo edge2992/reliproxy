@@ -1,4 +1,4 @@
-package models
+package repository
 
 type RequestStatus struct {
 	ID     string `gorm:"primary_key"`

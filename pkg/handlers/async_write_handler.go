@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"reliproxy/pkg/models"
 	"reliproxy/pkg/queue"
+	"reliproxy/pkg/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -11,10 +11,10 @@ import (
 
 type AsyncWriteHandler struct {
 	queue            queue.Queue
-	statusRepository models.RequestStatusRepository
+	statusRepository repository.RequestStatusRepository
 }
 
-func NewAsyncWriteHandler(queue queue.Queue, repository models.RequestStatusRepository) *AsyncWriteHandler {
+func NewAsyncWriteHandler(queue queue.Queue, repository repository.RequestStatusRepository) *AsyncWriteHandler {
 	return &AsyncWriteHandler{
 		queue:            queue,
 		statusRepository: repository,
@@ -25,7 +25,7 @@ func (h *AsyncWriteHandler) HandleRequest(c *gin.Context) {
 	requestID := uuid.New().String()
 	requestData := c.Request.Body
 
-	requestStatus := models.RequestStatus{
+	requestStatus := repository.RequestStatus{
 		ID:     requestID,
 		Status: "queued",
 	}
